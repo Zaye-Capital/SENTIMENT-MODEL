@@ -5,6 +5,7 @@ from fastapi import FastAPI, Header, HTTPException, Request
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
 import torch
 
+
 # -------- Config --------
 API_KEY = (os.getenv("SENTIMENT_SVC_API_KEY") or "").strip()
 REQUIRE_AUTH = len(API_KEY) > 0
@@ -22,10 +23,10 @@ EN3C_ID    = "j-hartmann/sentiment-roberta-large-english-3-classes"
 MULTI5S_ID = "nlptown/bert-base-multilingual-uncased-sentiment"
 
 def make_pipe(model_id: str):
-    tok = AutoTokenizer.from_pretrained(model_id, cache_dir=HF_CACHE)
-    mdl = AutoModelForSequenceClassification.from_pretrained(model_id, cache_dir=HF_CACHE)
-    # return_all_scores=True -> list[list[{label,score},...]] like HF Inference
-    return pipeline("text-classification", model=mdl, tokenizer=tok, return_all_scores=True)
+    tok = AutoTokenizer.from_pretrained(model_id, cache_dir=os.getenv("HF_HOME"))
+    mdl = AutoModelForSequenceClassification.from_pretrained(model_id, cache_dir=os.getenv("HF_HOME"))
+    # top_k=None ≈ return_all_scores=True (list-of-lists of dicts)
+    return pipeline("text-classification", model=mdl, tokenizer=tok, top_k=None)
 
 # Eager load (fastest). If you need lower RAM, you can lazy-load on first use.
 pipe_social  = make_pipe(SOCIAL_ID)
